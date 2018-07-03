@@ -8,7 +8,7 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
-exports.requestHandler = function(request, response) {
+var requestHandler = function(request, response) {
 
   
   var statusCode = 200;
@@ -17,28 +17,47 @@ exports.requestHandler = function(request, response) {
 
   var headers = defaultCorsHeaders;
 
-  headers['Content-Type'] = '`application/json`';
+  headers['Content-Type'] = 'application/json';
 
 
-  response.writeHead(statusCode, headers);
 
-  request.on('error', (err) => {
-    statusCode = 404;
-  });
+
+  
+  // console.log(request.url)
   // console.log(request);
-  if (request.url === '/classes/messages' && request.method === 'GET') {
-    response.end(JSON.stringify(data)); 
+  // response.writeHead(statusCode, headers);
+  // if (!request.url.includes('/classes/messages') || request.url !== '/') {
+  //   statusCode = 404;
+  //   response.writeHead(404);
+  //   response.end();
+  // }
+  if (request.url === '/classes/messages') {
+    if (request.method === 'GET') {
+      response.writeHead(200);
+      response.end(JSON.stringify(data)); 
+    } else if (request.method === 'POST') {
+      // statusCode = 201;
+      request.on('data', (message) => {
+        response.writeHead(201);
+        data.results.push(JSON.parse(message));
+      }).on('end', () => {
+        response.end(JSON.stringify(data)); 
+      });
+      // .end(JSON.stringify(data)); 
+    } 
+  } else {
+    response.writeHead(404);
+    response.end();
   }
-  if (request.url === '/classes/messages' && request.method === 'POST') {
-    statusCode = 201;
-    request.on('data', (message) => {
-      data.results.push(JSON.parse(message));
-    });
-    response.end(JSON.stringify(data)); 
-  }
+  request.on('error', () => {
+    response.writeHead(404);
+    response.end();
+  });
 
   // response.end(JSON.stringify(data));
 };
+
+exports.requestHandler = requestHandler;
 
 
 
